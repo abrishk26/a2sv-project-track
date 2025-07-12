@@ -90,3 +90,13 @@ func parseGrades(grades string) ([]float64, error) {
 
 	return res, nil
 }
+
+func calculateAvg(grades []float64) float64 {
+	var sum float64
+
+	for _, grade := range grades {
+		sum += grade
+	}
+
+	return sum / float64(len(grades))
+}
