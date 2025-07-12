@@ -21,3 +21,15 @@ func TestParseGrades(t *testing.T) {
 		}
 	}
 }
+
+func TestCalculateAvg(t *testing.T) {
+	input := []float64{80.3, 70.4, 90.1, 67.4}
+
+	var expected float64 = 77.05
+
+	res := calculateAvg(input)
+
+	if expected != res {
+		t.Fatalf("Expected %f, got %f instead", expected, res)
+	}
+}
