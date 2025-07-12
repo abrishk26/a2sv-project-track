@@ -66,10 +66,29 @@ func main() {
 		fmt.Printf("Expected %d courses, found %d courses", courseCount, len(courseGrades))
 		return
 	}
-	
+
+	fmt.Println()
+
+	fmt.Println("|------------------------------------------------|")
+	fmt.Printf( "| Full Name: %s                                  |\n", fullName)
+	fmt.Printf( "| Number of Courses: %d                          |\n", courseCount )
+	fmt.Println("|________________________________________________|")
+
+	fmt.Println()
 
 	
-	fmt.Printf("Full Name: %s\nNumber of Courses: %d\n", fullName, courseCount)
+	fmt.Println(   "|------------------------------------------------|")	
+	for i := range courseCount {
+		fmt.Printf("| %s: %f                                         |\n", courseNames[i], courseGrades[i])
+	}
+
+	fmt.Println(   "|------------------------------------------------|")	
+
+	fmt.Println()
+	
+	fmt.Println("|------------------------------------------------|")	
+	fmt.Printf( "| Average: %f                                    |\n", calculateAvg(courseGrades))
+	fmt.Println("|------------------------------------------------|")	
 }
 
 func parseGrades(grades string) ([]float64, error) {
