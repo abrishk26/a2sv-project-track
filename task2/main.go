@@ -24,3 +24,26 @@ func CountWordFreq(input string) map[string]int  {
 	
 	return count
 }
+
+func IsPalindrome(input string) bool {
+	buf := []rune{}
+
+	for _, c := range input {
+		if unicode.IsLetter(c) {
+			buf = append(buf, unicode.ToLower(c))
+		}
+	}
+
+	left, right := 0, len(buf) - 1
+
+	for left < right {
+		if buf[left] != buf[right] {
+			return false
+		}
+
+		left++
+		right--
+	}
+
+	return true
+}
