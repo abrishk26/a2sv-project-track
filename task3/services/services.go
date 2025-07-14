@@ -19,7 +19,7 @@ func NewLibrary() *Library {
 	return &Library{
 		map[int]models.Book{},
 		map[int]models.Member{},
-		map[int]map[int]bool{},
+		make(map[int]map[int]bool),
 	}
 }
 
@@ -27,6 +27,10 @@ type Library struct {
 	Books map[int]models.Book
 	Members map[int]models.Member
 	Borrow map[int]map[int]bool
+}
+
+func (l *Library) AddMember(member models.Member) {
+	l.Members[member.ID] = member
 }
 
 func (l *Library) AddBook(book models.Book) {
@@ -38,14 +42,18 @@ func (l *Library) RemoveBook(bookID int) {
 }
 
 func (l *Library) BorrowBook(bookID, memberID int) error {
-	book, exist := l.Books[bookID]
+	_, exist := l.Books[bookID]
 	if !exist {
 		return errors.New("Book with the given ID does not exist")
 	}
 
-	member, exist := l.Members[memberID]
+	_, exist = l.Members[memberID]
 	if !exist {
 		return errors.New("Member with the given ID does not exist")
+	}
+
+	if l.Borrow[bookID] == nil {
+		l.Borrow[bookID] = make(map[int]bool)
 	}
 
 	l.Borrow[bookID][memberID] = true
@@ -54,17 +62,17 @@ func (l *Library) BorrowBook(bookID, memberID int) error {
 }
 
 func (l *Library) ReturnBook(bookID, memberID int) error {
-	book, exist := l.Borrow[bookID]
+	_, exist := l.Borrow[bookID]
 	if !exist {
 		return errors.New("No has never been borrowed")
 	}
 
-	member, exist := l.Borrow[book][memberID]
+	_, exist = l.Borrow[bookID][memberID]
 	if !exist {
 		return errors.New("member didn't borrow this book")
 	}
 
-	delete(l.Borrow[book][member])
+	delete(l.Borrow[bookID], memberID)
 
 	return nil
 }
@@ -87,4 +95,6 @@ func (l *Library) ListBorrowedBooks(memberID int) []models.Book {
 			books = append(books, l.Books[bookID])
 		}
 	}
+
+	return books
 }
