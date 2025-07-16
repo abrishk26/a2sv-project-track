@@ -2,9 +2,10 @@ package controllers
 
 import (
 	"net/http"
+	"strconv"
 
-	"github.com/abrishk26/data"
-	"github.com/abrishk26/models"
+	"github.com/abrishk26/a2sv-project-track/task4/data"
+	"github.com/abrishk26/a2sv-project-track/task4/models"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,7 +20,7 @@ type TaskController struct {
 func (tc *TaskController) CreateTask(c *gin.Context) {
 	var task models.Task
 
-	err = c.ShouldBind(&task)
+	err := c.ShouldBind(&task)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "invalid request body",
@@ -33,13 +34,20 @@ func (tc *TaskController) CreateTask(c *gin.Context) {
 		"task": task,
 	})
 }
+
+func (tc *TaskController) GetTasks(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"message": "tasks retrieved successfully",
+		"tasks": tc.taskManager.GetAll(),
+	})
+}
+
 func (tc *TaskController) GetTask(c *gin.Context) {
-	idParam := c.Params("id")
+	idParam := c.Param("id")
 
 	if idParam == "" {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "tasks retrieved successfully",
-			"tasks": tc.taskManger.GetAll(),
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "task id missing",
 		})
 		return
 	}
@@ -55,7 +63,7 @@ func (tc *TaskController) GetTask(c *gin.Context) {
 	task, err := tc.taskManager.Get(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}
@@ -67,7 +75,7 @@ func (tc *TaskController) GetTask(c *gin.Context) {
 }
 
 func (tc *TaskController) UpdateTask(c *gin.Context) {
-	idParam := c.Params("id")
+	idParam := c.Param("id")
 	
 	if idParam == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -97,7 +105,7 @@ func (tc *TaskController) UpdateTask(c *gin.Context) {
 	task, err = tc.taskManager.Update(id, task)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}
@@ -109,7 +117,7 @@ func (tc *TaskController) UpdateTask(c *gin.Context) {
 }
 
 func (tc *TaskController) DeleteTask(c *gin.Context) {
-	idParam := c.Params("id")
+	idParam := c.Param("id")
 	
 	if idParam == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -129,12 +137,12 @@ func (tc *TaskController) DeleteTask(c *gin.Context) {
 	task, err := tc.taskManager.Delete(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}
 
-	c.JSON(http.StatusAccepted, c.H{
+	c.JSON(http.StatusAccepted, gin.H{
 		"message": "task deleted successfully",
 		"task": task,
 	})

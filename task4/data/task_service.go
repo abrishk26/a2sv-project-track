@@ -2,16 +2,17 @@ package data
 
 import (
 	"sync"
+	"errors"
 
 	"github.com/abrishk26/a2sv-project-track/task4/models"
 )
 
 type TaskRepository interface {
-	Add(t models.Task) Task
-	Get(id int) (Task, error)
-	Delete(id int) (Task, error)
-	Update(id int, t models.Task) (Task, error)
-	GetAll() []Task
+	Add(t models.Task) models.Task
+	Get(id int) (models.Task, error)
+	Delete(id int) (models.Task, error)
+	Update(id int, t models.Task) (models.Task, error)
+	GetAll() []models.Task
 }
 
 func NewTaskManager() *TaskManager {
@@ -29,7 +30,7 @@ func (tm *TaskManager) Add(t models.Task) models.Task {
 	t.ID = len(tm.tasks) + 1
 	tm.tasks[t.ID] = t
 
-	tm.tasks.Mu.Unlock()
+	tm.tasksMu.Unlock()
 
 	return t
 }
@@ -57,7 +58,7 @@ func (tm *TaskManager) Delete(id int) (models.Task, error) {
 	return models.Task{}, errors.New("Task with the given id does not exist")
 }
 
-func (tm *TaskManger) Update(id int, t models.Task) (models.Task, error) {
+func (tm *TaskManager) Update(id int, t models.Task) (models.Task, error) {
 	tm.tasksMu.Lock()
 
 	if task, ok := tm.tasks[id]; ok {
@@ -85,7 +86,7 @@ func (tm *TaskManger) Update(id int, t models.Task) (models.Task, error) {
 	return models.Task{}, errors.New("Task with the given id does not exist")
 }
 
-func (tm *TaskManger) GetAll() []models.Task {
+func (tm *TaskManager) GetAll() []models.Task {
 	tasks := []models.Task{}
 
 	tm.tasksMu.Lock()
