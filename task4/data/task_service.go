@@ -14,9 +14,13 @@ type TaskRepository interface {
 	GetAll() []Task
 }
 
+func NewTaskManager() *TaskManager {
+	return &TaskManager{sync.Mutex{}, map[int]models.Task{}}
+}
+
 type TaskManager struct {
 	tasksMu sync.Mutex
-	tasks map[int]models[Task]
+	tasks map[int]models.Task
 }
 
 func (tm *TaskManager) Add(t models.Task) models.Task {

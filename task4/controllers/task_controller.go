@@ -8,6 +8,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func NewTaskController(tm *data.TaskManager) *TaskController {
+	return &TaskController{tm}
+}
 
 type TaskController struct {
 	taskManager *data.TaskManager
@@ -19,7 +22,7 @@ func (tc *TaskController) CreateTask(c *gin.Context) {
 	err = c.ShouldBind(&task)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid request body"
+			"error": "invalid request body",
 		})
 		return
 	}
@@ -34,14 +37,17 @@ func (tc *TaskController) GetTask(c *gin.Context) {
 	idParam := c.Params("id")
 
 	if idParam == "" {
-		c.JSON(http.StatusOK, tc.taskManger.GetAll())
+		c.JSON(http.StatusOK, gin.H{
+			"message": "tasks retrieved successfully",
+			"tasks": tc.taskManger.GetAll(),
+		})
 		return
 	}
 
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid id"
+			"error": "Invalid id",
 		})
 		return
 	}
@@ -49,15 +55,15 @@ func (tc *TaskController) GetTask(c *gin.Context) {
 	task, err := tc.taskManager.Get(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
-			"error": err
+			"error": err,
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "task created successfully",
+		"message": "task retrieved successfully",
 		"task": task,
-	)
+	})
 }
 
 func (tc *TaskController) UpdateTask(c *gin.Context) {
@@ -65,7 +71,7 @@ func (tc *TaskController) UpdateTask(c *gin.Context) {
 	
 	if idParam == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "task id is not specified"
+			"error": "task id is not specified",
 		})
 		return
 	}
@@ -73,7 +79,7 @@ func (tc *TaskController) UpdateTask(c *gin.Context) {
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid id"
+			"error": "Invalid id",
 		})
 		return
 	}
@@ -83,7 +89,7 @@ func (tc *TaskController) UpdateTask(c *gin.Context) {
 	err = c.ShouldBind(&task)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid request body"
+			"error": "invalid request body",
 		})
 		return
 	}
@@ -91,7 +97,7 @@ func (tc *TaskController) UpdateTask(c *gin.Context) {
 	task, err = tc.taskManager.Update(id, task)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
-			"error": err
+			"error": err,
 		})
 		return
 	}
@@ -99,7 +105,7 @@ func (tc *TaskController) UpdateTask(c *gin.Context) {
 	c.JSON(http.StatusAccepted, gin.H{
 		"message": "task updated successfully",
 		"task": task,
-	)
+	})
 }
 
 func (tc *TaskController) DeleteTask(c *gin.Context) {
@@ -107,7 +113,7 @@ func (tc *TaskController) DeleteTask(c *gin.Context) {
 	
 	if idParam == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "task id is not specified"
+			"error": "task id is not specified",
 		})
 		return
 	}
@@ -115,7 +121,7 @@ func (tc *TaskController) DeleteTask(c *gin.Context) {
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid id"
+			"error": "Invalid id",
 		})
 		return
 	}
@@ -123,7 +129,7 @@ func (tc *TaskController) DeleteTask(c *gin.Context) {
 	task, err := tc.taskManager.Delete(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
-			"error": err
+			"error": err,
 		})
 		return
 	}
