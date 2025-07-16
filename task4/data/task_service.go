@@ -37,12 +37,12 @@ func (tm *TaskManager) Add(t models.Task) models.Task {
 
 func (tm *TaskManager) Get(id int) (models.Task, error) {
 	tm.tasksMu.Lock()
+	defer tm.tasksMu.Unlock()
 
 	if task, ok := tm.tasks[id]; ok {
 		return task, nil
 	}
 
-	tm.tasksMu.Unlock()
 	return models.Task{}, errors.New("Task with the given id does not exist")
 }
 
@@ -60,6 +60,7 @@ func (tm *TaskManager) Delete(id int) (models.Task, error) {
 
 func (tm *TaskManager) Update(id int, t models.Task) (models.Task, error) {
 	tm.tasksMu.Lock()
+	tm.tasksMu.Unlock()
 
 	if task, ok := tm.tasks[id]; ok {
 		if t.Title != "" {
@@ -82,7 +83,6 @@ func (tm *TaskManager) Update(id int, t models.Task) (models.Task, error) {
 		return task, nil
 	}
 
-	tm.tasksMu.Unlock()
 	return models.Task{}, errors.New("Task with the given id does not exist")
 }
 
