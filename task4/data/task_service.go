@@ -48,13 +48,13 @@ func (tm *TaskManager) Get(id int) (models.Task, error) {
 
 func (tm *TaskManager) Delete(id int) (models.Task, error) {
 	tm.tasksMu.Lock()
+	defer tm.tasksMu.Unlock()
 
 	if task, ok := tm.tasks[id]; ok {
 		delete(tm.tasks, id)
 		return task, nil
 	}
 
-	tm.tasksMu.Unlock()
 	return models.Task{}, errors.New("Task with the given id does not exist")
 }
 
