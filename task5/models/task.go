@@ -1,9 +1,9 @@
 package models
 
 type Task struct {
-	ID string `json:"id"`
-	Title string `json:"title"`
+	ID          string `json:"id"`
+	Title       string `json:"title"`
 	Description string `json:"description"`
-	DueDate string `json:"due_date"`
-	Done bool `json:"done"`
+	DueDate     string `json:"due_date"`
+	Done        bool   `json:"done"`
 }
