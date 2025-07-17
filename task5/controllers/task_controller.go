@@ -20,7 +20,7 @@ type TaskController struct {
 func (tc *TaskController) CreateTask(c *gin.Context) {
 	var task models.Task
 
-	err := c.ShouldBind(&task)
+	err := c.ShouldBindJSON(&task)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "invalid request body",
