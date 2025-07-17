@@ -3,7 +3,6 @@ package data
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/abrishk26/a2sv-project-track/task5/models"
 
@@ -42,24 +41,30 @@ func (tm *TaskManager) Add(ctx context.Context, t models.Task) (models.Task, err
 		return models.Task{}, err
 	}
 
-	ID, ok := insertedTask.InsertedID.(fmt.Stringer)
+	ID, ok := insertedTask.InsertedID.(bson.ObjectID)
 	if !ok {
 		return t, errors.New("Internal server errro")
 	}
 
-	t.ID = ID.String()
+	t.ID = ID.Hex()
 	return t, nil
 }
 
 func (tm *TaskManager) Get(ctx context.Context, id string) (models.Task, error) {
 	var res models.Task
-	filter := bson.D{{Key: "_id", Value: id}}
-
-	singleResult := tm.coll.FindOne(ctx, filter)
-	err := singleResult.Decode(&res)
+	bsonID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return res, err
 	}
+	filter := bson.D{{Key: "_id", Value: bsonID}}
+
+	singleResult := tm.coll.FindOne(ctx, filter)
+	err = singleResult.Decode(&res)
+	if err != nil {
+		return res, err
+	}
+
+	res.ID = id
 
 	return res, nil
 }
@@ -71,7 +76,12 @@ func (tm *TaskManager) Delete(ctx context.Context, id string) (models.Task, erro
 		return res, err
 	}
 
-	filter := bson.D{{Key: "_id", Value: id}}
+	bsonID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return res, err
+	}
+
+	filter := bson.D{{Key: "_id", Value: bsonID}}
 	_, err = tm.coll.DeleteOne(ctx, filter)
 	if err != nil {
 		return res, err
@@ -83,6 +93,11 @@ func (tm *TaskManager) Delete(ctx context.Context, id string) (models.Task, erro
 func (tm *TaskManager) Update(ctx context.Context, id string, t models.Task) (models.Task, error) {
 	var res models.Task
 	_, err := tm.Get(ctx, id)
+	if err != nil {
+		return res, err
+	}
+
+	bsonID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return res, err
 	}
@@ -104,7 +119,7 @@ func (tm *TaskManager) Update(ctx context.Context, id string, t models.Task) (mo
 		updates = append(updates, bson.E{Key: "done", Value: t.Done})
 	}
 
-	_, err = tm.coll.UpdateOne(ctx, bson.D{{Key: "_id", Value: id}}, updates)
+	_, err = tm.coll.UpdateOne(ctx, bson.D{{Key: "_id", Value: bsonID}}, bson.D{{Key: "$set", Value: updates}})
 	if err != nil {
 		return res, err
 	}
@@ -126,12 +141,25 @@ func (tm *TaskManager) GetAll(ctx context.Context) ([]models.Task, error) {
 	}
 
 	for cursor.Next(ctx) {
-		var task models.Task
+		var temp struct {
+			ID          bson.ObjectID `bson:"_id"`
+			Title       string        `bson:"title"`
+			Description string        `bson:"description"`
+			DueDate     string        `bson:"due_date"`
+			Done        bool          `bson:"done"`
+		}
 
-		err = cursor.Decode(&task)
+		err = cursor.Decode(&temp)
 		if err != nil {
 			return tasks, err
 		}
+
+		var task models.Task
+		task.ID = temp.ID.Hex()
+		task.Description = temp.Description
+		task.Title = temp.Title
+		task.DueDate = temp.DueDate
+		task.Done = temp.Done
 
 		tasks = append(tasks, task)
 	}
