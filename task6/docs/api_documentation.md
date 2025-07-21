@@ -219,9 +219,23 @@ Both require a JSON body with `username` and `password` fields.
 ---
 
 ### Get All Users
+**Requires:** Authorization Bearer Token (Admin)
+
 `GET /users`
 
-**Requires:** Authorization Bearer Token (Admin)
+**Successful Response:**
+```json
+{
+  "message": "Users retrieved successfully.",
+  "users": [
+    {
+    "username": "Username",
+    "role": "user role",
+    "id": "user id",
+    }
+  ]
+}
+```
 
 ---
 
@@ -230,6 +244,18 @@ Both require a JSON body with `username` and `password` fields.
 
 **Requires:** Authorization Bearer Token (Admin)
 
+**Successful Response:**
+```json
+{
+  "message": "User retrieved successfully.",
+  "user": {
+    "username": "Username",
+    "role": "user role",
+    "id": "user id",
+  }
+}
+```
+
 ---
 
 ### Update User
@@ -237,10 +263,44 @@ Both require a JSON body with `username` and `password` fields.
 
 **Requires:** Authorization Bearer Token (Admin)
 
+**Request Body:**
+```json
+{
+  "username": "New user name",
+  "role": "New user role"
+}
+```
+
+**Successful Response:**
+```json
+{
+  "message": "User updated successfully.",
+  "user": {
+    "username": "Updated username",
+    "role": "Updated user role",
+    "id": "user id",
+  }
+}
+```
+
 ---
 
 ### Delete User
 `DELETE /users/:id`
 
 **Requires:** Authorization Bearer Token (Admin)
+
+**Requires:** Authorization Bearer Token (Admin)
+
+**Successful Response:**
+```json
+{
+  "message": "User deleted successfully.",
+  "user": {
+    "username": "Deleted User Username",
+    "role": "Deleted user role",
+    "id": "Deleted user id"
+  }
+}
+```
 
