@@ -9,7 +9,7 @@ git clone git@github.com:abrishk26/a2sv-project-track.git
 
 Change directory:
 ```bash
-cd a2sv-project-track/task6
+cd a2sv-project-track/task7
 ```
 
 Create a `.env` file:
