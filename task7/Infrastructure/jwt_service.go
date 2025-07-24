@@ -23,7 +23,7 @@ func GenerateJWT(claims map[string]any, secret string) (string, error) {
 }
 
 func VerifyToken(token, secret string, claims jwt.Claims) (*jwt.Token, error) {
-	parsedToken, err := jwt.ParseWithClaims(token, &claims, func(token *jwt.Token) (any, error) {
+	parsedToken, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
