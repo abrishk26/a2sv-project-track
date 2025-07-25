@@ -5,14 +5,13 @@ import (
 
 	"github.com/abrishk26/a2sv-project-track/task7/Delivery/controllers"
 	"github.com/abrishk26/a2sv-project-track/task7/Infrastructure"
-	"github.com/abrishk26/a2sv-project-track/task7/Repositories"
 
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 func NewRouter(taskColl, userColl *mongo.Collection) *gin.Engine {
-	taskController := controllers.NewTaskController(repositories.NewTaskRepository(taskColl))
-	userController := controllers.NewUserController(repositories.NewUserRepository(userColl))
+	taskController := controllers.NewTaskController(taskColl)
+	userController := controllers.NewUserController(userColl)
 
 	router := gin.Default()
 
