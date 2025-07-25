@@ -1,31 +1,33 @@
 package usecases
 
 import (
-	"context"
-
 	"github.com/abrishk26/a2sv-project-track/task7/Domain"
 )
+
+func NewTaskUsecases(r domain.ITaskRepository) *TaskUsecases {
+	return &TaskUsecases{r}
+}
 
 type TaskUsecases struct {
 	repo domain.ITaskRepository
 }
 
-func (ta *TaskUsecases) Add(ctx context.Context, u domain.User) error {
-	return ta.Add(ctx, u)
+func (ta *TaskUsecases) Add(u domain.Task) error {
+	return ta.repo.Add(u)
 }
 
-func (ta *TaskUsecases) Get(ctx context.Context, id string) (*domain.User, error) {
-	return ta.Get(ctx, id)
+func (ta *TaskUsecases) Get(id string) (*domain.Task, error) {
+	return ta.repo.Get(id)
 }
 
-func (ta *TaskUsecases) Delete(ctx context.Context, id string) error {
-	return ta.Delete(ctx, id)
+func (ta *TaskUsecases) Delete(id string) error {
+	return ta.repo.Delete(id)
 }
 
-func (ta *TaskUsecases) Update(ctx context.Context, id string, u domain.User) error {
-	return ta.Update(ctx, id, u)
+func (ta *TaskUsecases) Update(id string, u domain.Task) error {
+	return ta.repo.Update(id, u)
 }
 
-func (ta *TaskUsecases) GetAll(ctx context.Context) (*[]domain.User, error) {
-	return ta.GetAll(ctx)
+func (ta *TaskUsecases) GetAll() (*[]domain.Task, error) {
+	return ta.repo.GetAll()
 }
