@@ -8,17 +8,19 @@ import (
 	"github.com/abrishk26/a2sv-project-track/task7/Domain"
 	"github.com/abrishk26/a2sv-project-track/task7/Infrastructure"
 	"github.com/abrishk26/a2sv-project-track/task7/Repositories"
+	"github.com/abrishk26/a2sv-project-track/task7/Usecases"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-func NewUserController(um *repositories.UserRepository) *UserController {
-	return &UserController{um}
+func NewUserController(userColl *mongo.Collection) *UserController {
+	return &UserController{userColl}
 }
 
 type UserController struct {
-	userRepository *repositories.UserRepository
+	userColl *mongo.Collection
 }
 
 func (uc *UserController) LoginUser(c *gin.Context) {
@@ -44,7 +46,9 @@ func (uc *UserController) LoginUser(c *gin.Context) {
 		return
 	}
 
-	user, err := uc.userRepository.Get(c, idParam)
+	userUsecase := usecases.NewUserUsecases(repositories.NewUserRepository(c.Request.Context(), uc.userColl))
+
+	user, err := userUsecase.Get(idParam)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -123,7 +127,8 @@ func (uc *UserController) RegisterUser(c *gin.Context) {
 	user.PasswordHash = string(hashedPassword)
 	user.Username = requestBody.Username
 
-	err = uc.userRepository.Add(c, user)
+	userUsecase := usecases.NewUserUsecases(repositories.NewUserRepository(c.Request.Context(), uc.userColl))
+	err = userUsecase.Add(user)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
@@ -131,7 +136,7 @@ func (uc *UserController) RegisterUser(c *gin.Context) {
 		return
 	}
 
-	newUser, err := uc.userRepository.Get(c, user.ID)
+	newUser, err := userUsecase.Get(user.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -145,7 +150,8 @@ func (uc *UserController) RegisterUser(c *gin.Context) {
 }
 
 func (uc *UserController) GetUsers(c *gin.Context) {
-	users, err := uc.userRepository.GetAll(c)
+	userUsecase := usecases.NewUserUsecases(repositories.NewUserRepository(c.Request.Context(), uc.userColl))
+	users, err := userUsecase.GetAll()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
@@ -169,7 +175,8 @@ func (uc *UserController) GetUser(c *gin.Context) {
 		return
 	}
 
-	user, err := uc.userRepository.Get(c, idParam)
+	userUsecase := usecases.NewUserUsecases(repositories.NewUserRepository(c.Request.Context(), uc.userColl))
+	user, err := userUsecase.Get(idParam)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -202,7 +209,8 @@ func (uc *UserController) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	err = uc.userRepository.Update(c, idParam, user)
+	userUsecase := usecases.NewUserUsecases(repositories.NewUserRepository(c.Request.Context(), uc.userColl))
+	err = userUsecase.Update(idParam, user)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -210,7 +218,7 @@ func (uc *UserController) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	updatedUser, err := uc.userRepository.Get(c, idParam)
+	updatedUser, err := userUsecase.Get(idParam)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -233,7 +241,8 @@ func (uc *UserController) DeleteUser(c *gin.Context) {
 		return
 	}
 
-	deletedUser, err := uc.userRepository.Get(c, idParam)
+	userUsecase := usecases.NewUserUsecases(repositories.NewUserRepository(c.Request.Context(), uc.userColl))
+	deletedUser, err := userUsecase.Get(idParam)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -241,7 +250,7 @@ func (uc *UserController) DeleteUser(c *gin.Context) {
 		return
 	}
 
-	err = uc.userRepository.Delete(c, idParam)
+	err = userUsecase.Delete(idParam)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),

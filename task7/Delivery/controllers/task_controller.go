@@ -5,17 +5,19 @@ import (
 
 	"github.com/abrishk26/a2sv-project-track/task7/Domain"
 	"github.com/abrishk26/a2sv-project-track/task7/Repositories"
+	usecases "github.com/abrishk26/a2sv-project-track/task7/Usecases"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
-func NewTaskController(tm *repositories.TaskRepository) *TaskController {
-	return &TaskController{tm}
+func NewTaskController(coll *mongo.Collection) *TaskController {
+	return &TaskController{coll}
 }
 
 type TaskController struct {
-	taskManager *repositories.TaskRepository
+	coll *mongo.Collection
 }
 
 func (tc *TaskController) CreateTask(c *gin.Context) {
@@ -38,7 +40,9 @@ func (tc *TaskController) CreateTask(c *gin.Context) {
 	}
 
 	task.ID = taskID.String()
-	err = tc.taskManager.Add(c, task)
+
+	taskUsecases := usecases.NewTaskUsecases(repositories.NewTaskRepository(c.Request.Context(), tc.coll))
+	err = taskUsecases.Add(task)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
@@ -52,7 +56,8 @@ func (tc *TaskController) CreateTask(c *gin.Context) {
 }
 
 func (tc *TaskController) GetTasks(c *gin.Context) {
-	tasks, err := tc.taskManager.GetAll(c)
+	taskUsecases := usecases.NewTaskUsecases(repositories.NewTaskRepository(c.Request.Context(), tc.coll))
+	tasks, err := taskUsecases.GetAll()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
@@ -76,7 +81,8 @@ func (tc *TaskController) GetTask(c *gin.Context) {
 		return
 	}
 
-	task, err := tc.taskManager.Get(c, idParam)
+	taskUsecases := usecases.NewTaskUsecases(repositories.NewTaskRepository(c.Request.Context(), tc.coll))
+	task, err := taskUsecases.Get(idParam)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -109,7 +115,8 @@ func (tc *TaskController) UpdateTask(c *gin.Context) {
 		return
 	}
 
-	err = tc.taskManager.Update(c, idParam, task)
+	taskUsecases := usecases.NewTaskUsecases(repositories.NewTaskRepository(c.Request.Context(), tc.coll))
+	err = taskUsecases.Update(idParam, task)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -117,7 +124,7 @@ func (tc *TaskController) UpdateTask(c *gin.Context) {
 		return
 	}
 
-	updatedTask, err := tc.taskManager.Get(c, idParam)
+	updatedTask, err := taskUsecases.Get(idParam)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -140,7 +147,8 @@ func (tc *TaskController) DeleteTask(c *gin.Context) {
 		return
 	}
 
-	deletedTask, err := tc.taskManager.Get(c, idParam)
+	taskUsecases := usecases.NewTaskUsecases(repositories.NewTaskRepository(c.Request.Context(), tc.coll))
+	deletedTask, err := taskUsecases.Get(idParam)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -148,7 +156,7 @@ func (tc *TaskController) DeleteTask(c *gin.Context) {
 		return
 	}
 
-	err = tc.taskManager.Delete(c, idParam)
+	err = taskUsecases.Delete(idParam)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
