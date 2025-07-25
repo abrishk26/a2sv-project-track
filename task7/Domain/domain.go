@@ -1,9 +1,5 @@
 package domain
 
-import (
-	"context"
-)
-
 type Task struct {
 	ID          string `json:"id" bson:"_id"`
 	Title       string `json:"title" bson:"title"`
@@ -20,17 +16,17 @@ type User struct {
 }
 
 type IUserRepository interface {
-	Add(ctx context.Context, u User) error
-	Get(ctx context.Context, id string) (*User, error)
-	Delete(ctx context.Context, id string) error
-	Update(ctx context.Context, id string, u User) error
-	GetAll(ctx context.Context) (*[]User, error)
+	Add(u User) error
+	Get(id string) (*User, error)
+	Delete(id string) error
+	Update(id string, u User) error
+	GetAll() (*[]User, error)
 }
 
 type ITaskRepository interface {
-	Add(ctx context.Context, t Task) error
-	Get(ctx context.Context, id string) (*Task, error)
-	Delete(ctx context.Context, id string) error
-	Update(ctx context.Context, id string, t Task) error
-	GetAll(ctx context.Context) (*[]Task, error)
+	Add(t Task) error
+	Get(id string) (*Task, error)
+	Delete(id string) error
+	Update(id string, t Task) error
+	GetAll() (*[]Task, error)
 }
