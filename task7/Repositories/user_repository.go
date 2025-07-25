@@ -9,16 +9,17 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-func NewUserRepository(db *mongo.Collection) *UserRepository {
-	return &UserRepository{db}
+func NewUserRepository(ctx context.Context, db *mongo.Collection) *UserRepository {
+	return &UserRepository{ctx, db}
 }
 
 type UserRepository struct {
+	ctx  context.Context
 	coll *mongo.Collection
 }
 
-func (um *UserRepository) Add(ctx context.Context, u domain.User) error {
-	userCount, err := um.coll.CountDocuments(ctx, bson.D{})
+func (ur *UserRepository) Add(u domain.User) error {
+	userCount, err := ur.coll.CountDocuments(ur.ctx, bson.D{})
 	if err != nil {
 		return err
 	}
@@ -29,7 +30,7 @@ func (um *UserRepository) Add(ctx context.Context, u domain.User) error {
 		u.Role = "user"
 	}
 
-	_, err = um.coll.InsertOne(ctx, u)
+	_, err = ur.coll.InsertOne(ur.ctx, u)
 	if err != nil {
 		return err
 	}
@@ -37,9 +38,9 @@ func (um *UserRepository) Add(ctx context.Context, u domain.User) error {
 	return nil
 }
 
-func (um *UserRepository) Get(ctx context.Context, id string) (*domain.User, error) {
+func (ur *UserRepository) Get(id string) (*domain.User, error) {
 	var res domain.User
-	singleResult := um.coll.FindOne(ctx, bson.D{bson.E{Key: "_id", Value: id}})
+	singleResult := ur.coll.FindOne(ur.ctx, bson.D{bson.E{Key: "_id", Value: id}})
 	err := singleResult.Decode(&res)
 
 	if err != nil {
@@ -49,8 +50,8 @@ func (um *UserRepository) Get(ctx context.Context, id string) (*domain.User, err
 	return &res, nil
 }
 
-func (um *UserRepository) Delete(ctx context.Context, id string) error {
-	_, err := um.coll.DeleteOne(ctx, bson.D{bson.E{Key: "_id", Value: id}})
+func (ur *UserRepository) Delete(id string) error {
+	_, err := ur.coll.DeleteOne(ur.ctx, bson.D{bson.E{Key: "_id", Value: id}})
 	if err != nil {
 		return err
 	}
@@ -58,8 +59,8 @@ func (um *UserRepository) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (um *UserRepository) Update(ctx context.Context, id string, u domain.User) error {
-	_, err := um.Get(ctx, id)
+func (ur *UserRepository) Update(id string, u domain.User) error {
+	_, err := ur.Get(id)
 	if err != nil {
 		return err
 	}
@@ -73,7 +74,7 @@ func (um *UserRepository) Update(ctx context.Context, id string, u domain.User) 
 		updates = append(updates, bson.E{Key: "role", Value: u.Role})
 	}
 
-	_, err = um.coll.UpdateOne(ctx, bson.D{bson.E{Key: "_id", Value: id}}, bson.D{bson.E{Key: "$set", Value: updates}})
+	_, err = ur.coll.UpdateOne(ur.ctx, bson.D{bson.E{Key: "_id", Value: id}}, bson.D{bson.E{Key: "$set", Value: updates}})
 	if err != nil {
 		return err
 	}
@@ -81,15 +82,15 @@ func (um *UserRepository) Update(ctx context.Context, id string, u domain.User) 
 	return nil
 }
 
-func (um *UserRepository) GetAll(ctx context.Context) (*[]domain.User, error) {
+func (ur *UserRepository) GetAll() (*[]domain.User, error) {
 	var tasks []domain.User
 
-	cursor, err := um.coll.Find(ctx, bson.D{})
+	cursor, err := ur.coll.Find(ur.ctx, bson.D{})
 	if err != nil {
 		return nil, err
 	}
 
-	for cursor.Next(ctx) {
+	for cursor.Next(ur.ctx) {
 		var task domain.User
 		err = cursor.Decode(&task)
 		if err != nil {

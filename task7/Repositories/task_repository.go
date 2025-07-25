@@ -9,16 +9,17 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-func NewTaskRepository(db *mongo.Collection) *TaskRepository {
-	return &TaskRepository{db}
+func NewTaskRepository(ctx context.Context, db *mongo.Collection) *TaskRepository {
+	return &TaskRepository{ctx, db}
 }
 
 type TaskRepository struct {
+	ctx  context.Context
 	coll *mongo.Collection
 }
 
-func (tm *TaskRepository) Add(ctx context.Context, t domain.Task) error {
-	_, err := tm.coll.InsertOne(ctx, t)
+func (tm *TaskRepository) Add(t domain.Task) error {
+	_, err := tm.coll.InsertOne(tm.ctx, t)
 	if err != nil {
 		return err
 	}
@@ -26,10 +27,10 @@ func (tm *TaskRepository) Add(ctx context.Context, t domain.Task) error {
 	return nil
 }
 
-func (tm *TaskRepository) Get(ctx context.Context, id string) (*domain.Task, error) {
+func (tm *TaskRepository) Get(id string) (*domain.Task, error) {
 	var res domain.Task
 
-	singleResult := tm.coll.FindOne(ctx, bson.D{bson.E{Key: "_id", Value: id}})
+	singleResult := tm.coll.FindOne(tm.ctx, bson.D{bson.E{Key: "_id", Value: id}})
 	err := singleResult.Decode(&res)
 	if err != nil {
 		return nil, err
@@ -38,13 +39,13 @@ func (tm *TaskRepository) Get(ctx context.Context, id string) (*domain.Task, err
 	return &res, nil
 }
 
-func (tm *TaskRepository) Delete(ctx context.Context, id string) error {
-	_, err := tm.Get(ctx, id)
+func (tm *TaskRepository) Delete(id string) error {
+	_, err := tm.Get(id)
 	if err != nil {
 		return err
 	}
 
-	_, err = tm.coll.DeleteOne(ctx, bson.D{bson.E{Key: "_id", Value: id}})
+	_, err = tm.coll.DeleteOne(tm.ctx, bson.D{bson.E{Key: "_id", Value: id}})
 	if err != nil {
 		return err
 	}
@@ -52,8 +53,8 @@ func (tm *TaskRepository) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (tm *TaskRepository) Update(ctx context.Context, id string, t domain.Task) error {
-	_, err := tm.Get(ctx, id)
+func (tm *TaskRepository) Update(id string, t domain.Task) error {
+	_, err := tm.Get(id)
 	if err != nil {
 		return err
 	}
@@ -75,7 +76,7 @@ func (tm *TaskRepository) Update(ctx context.Context, id string, t domain.Task) 
 		updates = append(updates, bson.E{Key: "done", Value: t.Done})
 	}
 
-	_, err = tm.coll.UpdateOne(ctx, bson.D{bson.E{Key: "_id", Value: id}}, bson.D{bson.E{Key: "$set", Value: updates}})
+	_, err = tm.coll.UpdateOne(tm.ctx, bson.D{bson.E{Key: "_id", Value: id}}, bson.D{bson.E{Key: "$set", Value: updates}})
 	if err != nil {
 		return err
 	}
@@ -83,15 +84,15 @@ func (tm *TaskRepository) Update(ctx context.Context, id string, t domain.Task) 
 	return nil
 }
 
-func (tm *TaskRepository) GetAll(ctx context.Context) (*[]domain.Task, error) {
+func (tm *TaskRepository) GetAll() (*[]domain.Task, error) {
 	var tasks []domain.Task
 
-	cursor, err := tm.coll.Find(ctx, bson.D{})
+	cursor, err := tm.coll.Find(tm.ctx, bson.D{})
 	if err != nil {
 		return nil, err
 	}
 
-	for cursor.Next(ctx) {
+	for cursor.Next(tm.ctx) {
 		var task domain.Task
 		err = cursor.Decode(&task)
 		if err != nil {
