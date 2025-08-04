@@ -32,3 +32,13 @@ type ITaskRepository interface {
 	Update(ctx context.Context, id string, t Task) error
 	GetAll(ctx context.Context) (*[]Task, error)
 }
+
+type IPasswordService interface {
+	Hash(password string) (string, error)
+	Verify(password, hash string) error
+}
+
+type ITokenService interface {
+	GenerateToken(userID string) (string, error)
+	VerifyToken(token string) (string, error)
+}
