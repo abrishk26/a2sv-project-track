@@ -13,7 +13,7 @@ func NewPasswordService() *PasswordService {
 
 type PasswordService struct{}
 
-func Hash(password string) (string, error) {
+func (ps *PasswordService) Hash(password string) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return "", domain.ErrPasswordHashingFailed
@@ -22,7 +22,7 @@ func Hash(password string) (string, error) {
 	return string(hash), nil
 }
 
-func Verify(password, hash string) error {
+func (ps *PasswordService) Verify(password, hash string) error {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	if err != nil {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
