@@ -30,6 +30,40 @@ type UserUsecases struct {
 	tokenService    domain.ITokenService
 }
 
+func getUserID(ctx context.Context, ts domain.ITokenService) (string, error) {
+	token, ok := TokenFromContext(ctx)
+	if !ok {
+		return "", domain.ErrUnauthorized
+	}
+
+	userID, err := ts.VerifyToken(token)
+	if err != nil {
+		switch err {
+		case domain.ErrExpiredToken:
+			return "", domain.ErrExpiredToken
+		case domain.ErrInvalidToken:
+			return "", domain.ErrUnauthorized
+		default:
+			return "", err
+		}
+	}
+
+	return userID, nil
+}
+
+func getUser(ctx context.Context, userID string, ur domain.IUserRepository) (*domain.User, error) {
+	user, err := ur.GetByID(ctx, userID)
+	if err != nil {
+		switch err {
+		case domain.ErrUserNotFound:
+			return nil, domain.ErrUnauthorized
+		default:
+			return nil, err
+		}
+	}
+	return user, nil
+}
+
 func (us *UserUsecases) Login(ctx context.Context, email, password string) (string, error) {
 	user, err := us.repo.GetByEmail(ctx, email)
 	if err != nil {
@@ -64,31 +98,14 @@ func (us *UserUsecases) Register(ctx context.Context, u domain.User) error {
 }
 
 func (us *UserUsecases) Get(ctx context.Context, id string) (*domain.User, error) {
-	token, ok := TokenFromContext(ctx)
-	if !ok {
-		return nil, domain.ErrUnautorized
+	userID, err := getUserID(ctx, us.tokenService)
+	if err != nil {
+		return nil, err
 	}
 
-	userID, err := us.tokenService.VerifyToken(token)
+	user, err := getUser(ctx, userID, us.repo)
 	if err != nil {
-		switch err {
-		case domain.ErrExpiredToken:
-			return nil, domain.ErrExpiredToken
-		case domain.ErrInvalidToken:
-			return nil, domain.ErrUnautorized
-		default:
-			return nil, err
-		}
-	}
-
-	user, err := us.repo.GetByID(ctx, userID)
-	if err != nil {
-		switch err {
-		case domain.ErrUserNotFound:
-			return nil, domain.ErrUnautorized
-		default:
-			return nil, err
-		}
+		return nil, err
 	}
 
 	if user.IsAdmin {
@@ -96,38 +113,21 @@ func (us *UserUsecases) Get(ctx context.Context, id string) (*domain.User, error
 	}
 
 	if userID != id {
-		return nil, domain.ErrUnautorized
+		return nil, domain.ErrUnauthorized
 	}
 
 	return us.repo.GetByID(ctx, id)
 }
 
 func (us *UserUsecases) Delete(ctx context.Context, id string) error {
-	token, ok := TokenFromContext(ctx)
-	if !ok {
-		return domain.ErrUnautorized
+	userID, err := getUserID(ctx, us.tokenService)
+	if err != nil {
+		return err
 	}
 
-	userID, err := us.tokenService.VerifyToken(token)
+	user, err := getUser(ctx, userID, us.repo)
 	if err != nil {
-		switch err {
-		case domain.ErrExpiredToken:
-			return domain.ErrExpiredToken
-		case domain.ErrInvalidToken:
-			return domain.ErrUnautorized
-		default:
-			return err
-		}
-	}
-
-	user, err := us.repo.GetByID(ctx, userID)
-	if err != nil {
-		switch err {
-		case domain.ErrUserNotFound:
-			return domain.ErrUnautorized
-		default:
-			return err
-		}
+		return err
 	}
 
 	if user.IsAdmin {
@@ -135,38 +135,21 @@ func (us *UserUsecases) Delete(ctx context.Context, id string) error {
 	}
 
 	if userID != id {
-		return domain.ErrUnautorized
+		return domain.ErrUnauthorized
 	}
 
 	return us.repo.Delete(ctx, id)
 }
 
 func (us *UserUsecases) Update(ctx context.Context, id string, u domain.User) error {
-	token, ok := TokenFromContext(ctx)
-	if !ok {
-		return domain.ErrUnautorized
+	userID, err := getUserID(ctx, us.tokenService)
+	if err != nil {
+		return err
 	}
 
-	userID, err := us.tokenService.VerifyToken(token)
+	user, err := getUser(ctx, userID, us.repo)
 	if err != nil {
-		switch err {
-		case domain.ErrExpiredToken:
-			return domain.ErrExpiredToken
-		case domain.ErrInvalidToken:
-			return domain.ErrUnautorized
-		default:
-			return err
-		}
-	}
-
-	user, err := us.repo.GetByID(ctx, userID)
-	if err != nil {
-		switch err {
-		case domain.ErrUserNotFound:
-			return domain.ErrUnautorized
-		default:
-			return err
-		}
+		return err
 	}
 
 	if user.IsAdmin {
@@ -174,42 +157,25 @@ func (us *UserUsecases) Update(ctx context.Context, id string, u domain.User) er
 	}
 
 	if userID != id {
-		return domain.ErrUnautorized
+		return domain.ErrUnauthorized
 	}
 
 	return us.repo.Update(ctx, id, u)
 }
 
 func (us *UserUsecases) GetAll(ctx context.Context) ([]domain.User, error) {
-	token, ok := TokenFromContext(ctx)
-	if !ok {
-		return nil, domain.ErrUnautorized
+	userID, err := getUserID(ctx, us.tokenService)
+	if err != nil {
+		return nil, err
 	}
 
-	userID, err := us.tokenService.VerifyToken(token)
+	user, err := getUser(ctx, userID, us.repo)
 	if err != nil {
-		switch err {
-		case domain.ErrExpiredToken:
-			return nil, domain.ErrExpiredToken
-		case domain.ErrInvalidToken:
-			return nil, domain.ErrUnautorized
-		default:
-			return nil, err
-		}
-	}
-
-	user, err := us.repo.GetByID(ctx, userID)
-	if err != nil {
-		switch err {
-		case domain.ErrUserNotFound:
-			return nil, domain.ErrUnautorized
-		default:
-			return nil, err
-		}
+		return nil, err
 	}
 
 	if !user.IsAdmin {
-		return nil, domain.ErrUnautorized
+		return nil, domain.ErrUnauthorized
 	}
 
 	return us.repo.GetAll(ctx)

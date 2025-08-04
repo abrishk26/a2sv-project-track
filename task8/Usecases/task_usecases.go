@@ -17,31 +17,14 @@ type TaskUsecases struct {
 }
 
 func (tu *TaskUsecases) Add(ctx context.Context, t domain.Task) error {
-	token, ok := TokenFromContext(ctx)
-	if !ok {
-		return domain.ErrUnauthorized
+	userID, err := getUserID(ctx, tu.tokenService)
+	if err != nil {
+		return err
 	}
 
-	userID, err := tu.tokenService.VerifyToken(token)
+	user, err := getUser(ctx, userID, tu.userRepo)
 	if err != nil {
-		switch err {
-		case domain.ErrExpiredToken:
-			return domain.ErrExpiredToken
-		case domain.ErrInvalidToken:
-			return domain.ErrUnauthorized
-		default:
-			return err
-		}
-	}
-
-	user, err := tu.userRepo.GetByID(ctx, userID)
-	if err != nil {
-		switch err {
-		case domain.ErrUserNotFound:
-			return domain.ErrUnauthorized
-		default:
-			return err
-		}
+		return err
 	}
 
 	t.UserID = user.ID
@@ -50,31 +33,14 @@ func (tu *TaskUsecases) Add(ctx context.Context, t domain.Task) error {
 }
 
 func (tu *TaskUsecases) Get(ctx context.Context, id string) (*domain.Task, error) {
-	token, ok := TokenFromContext(ctx)
-	if !ok {
-		return nil, domain.ErrUnauthorized
+	userID, err := getUserID(ctx, tu.tokenService)
+	if err != nil {
+		return nil, err
 	}
 
-	userID, err := tu.tokenService.VerifyToken(token)
+	user, err := getUser(ctx, userID, tu.userRepo)
 	if err != nil {
-		switch err {
-		case domain.ErrExpiredToken:
-			return nil, domain.ErrExpiredToken
-		case domain.ErrInvalidToken:
-			return nil, domain.ErrUnauthorized
-		default:
-			return nil, err
-		}
-	}
-
-	user, err := tu.userRepo.GetByID(ctx, userID)
-	if err != nil {
-		switch err {
-		case domain.ErrUserNotFound:
-			return nil, domain.ErrUnauthorized
-		default:
-			return nil, err
-		}
+		return nil, err
 	}
 
 	task, err := tu.taskRepo.Get(ctx, id)
@@ -99,21 +65,14 @@ func (tu *TaskUsecases) Get(ctx context.Context, id string) (*domain.Task, error
 }
 
 func (tu *TaskUsecases) Delete(ctx context.Context, id string) error {
-	token, ok := TokenFromContext(ctx)
-	if !ok {
-		return domain.ErrUnauthorized
+	userID, err := getUserID(ctx, tu.tokenService)
+	if err != nil {
+		return err
 	}
 
-	userID, err := tu.tokenService.VerifyToken(token)
+	user, err := getUser(ctx, userID, tu.userRepo)
 	if err != nil {
-		switch err {
-		case domain.ErrExpiredToken:
-			return domain.ErrExpiredToken
-		case domain.ErrInvalidToken:
-			return domain.ErrUnauthorized
-		default:
-			return err
-		}
+		return err
 	}
 
 	task, err := tu.taskRepo.Get(ctx, id)
@@ -121,16 +80,6 @@ func (tu *TaskUsecases) Delete(ctx context.Context, id string) error {
 		switch err {
 		case domain.ErrTaskNotFound:
 			return domain.ErrTaskNotFound
-		default:
-			return err
-		}
-	}
-
-	user, err := tu.userRepo.GetByID(ctx, userID)
-	if err != nil {
-		switch err {
-		case domain.ErrUserNotFound:
-			return domain.ErrUnauthorized
 		default:
 			return err
 		}
@@ -148,21 +97,14 @@ func (tu *TaskUsecases) Delete(ctx context.Context, id string) error {
 }
 
 func (tu *TaskUsecases) Update(ctx context.Context, id string, t domain.Task) error {
-	token, ok := TokenFromContext(ctx)
-	if !ok {
-		return domain.ErrUnauthorized
+	userID, err := getUserID(ctx, tu.tokenService)
+	if err != nil {
+		return err
 	}
 
-	userID, err := tu.tokenService.VerifyToken(token)
+	user, err := getUser(ctx, userID, tu.userRepo)
 	if err != nil {
-		switch err {
-		case domain.ErrExpiredToken:
-			return domain.ErrExpiredToken
-		case domain.ErrInvalidToken:
-			return domain.ErrUnauthorized
-		default:
-			return err
-		}
+		return err
 	}
 
 	task, err := tu.taskRepo.Get(ctx, id)
@@ -170,16 +112,6 @@ func (tu *TaskUsecases) Update(ctx context.Context, id string, t domain.Task) er
 		switch err {
 		case domain.ErrTaskNotFound:
 			return domain.ErrTaskNotFound
-		default:
-			return err
-		}
-	}
-
-	user, err := tu.userRepo.GetByID(ctx, userID)
-	if err != nil {
-		switch err {
-		case domain.ErrUserNotFound:
-			return domain.ErrUnauthorized
 		default:
 			return err
 		}
@@ -196,31 +128,14 @@ func (tu *TaskUsecases) Update(ctx context.Context, id string, t domain.Task) er
 }
 
 func (tu *TaskUsecases) GetAll(ctx context.Context) ([]domain.Task, error) {
-	token, ok := TokenFromContext(ctx)
-	if !ok {
-		return nil, domain.ErrUnauthorized
+	userID, err := getUserID(ctx, tu.tokenService)
+	if err != nil {
+		return nil, err
 	}
 
-	userID, err := tu.tokenService.VerifyToken(token)
+	user, err := getUser(ctx, userID, tu.userRepo)
 	if err != nil {
-		switch err {
-		case domain.ErrExpiredToken:
-			return nil, domain.ErrExpiredToken
-		case domain.ErrInvalidToken:
-			return nil, domain.ErrUnauthorized
-		default:
-			return nil, err
-		}
-	}
-
-	user, err := tu.userRepo.GetByID(ctx, userID)
-	if err != nil {
-		switch err {
-		case domain.ErrUserNotFound:
-			return nil, domain.ErrUnauthorized
-		default:
-			return nil, err
-		}
+		return nil, err
 	}
 
 	if !user.IsAdmin {
