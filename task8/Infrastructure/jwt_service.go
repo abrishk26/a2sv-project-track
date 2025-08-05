@@ -2,6 +2,7 @@ package infrastructures
 
 import (
 	"time"
+	"errors"
 
 	domain "github.com/abrishk26/a2sv-project-track/task8/Domain"
 	"github.com/golang-jwt/jwt/v5"
@@ -34,15 +35,14 @@ func (ts *JWTTokenService) VerifyToken(tokenString string) (string, error) {
 	})
 
 	if err != nil {
-		switch err {
-		case jwt.ErrTokenMalformed:
-			return "", domain.ErrInvalidToken
-		case jwt.ErrTokenExpired:
-			return "", domain.ErrExpiredToken
-		default:
-			return "", err
-		}
-	}
+    if errors.Is(err, jwt.ErrTokenMalformed) {
+        return "", domain.ErrInvalidToken
+    }
+    if errors.Is(err, jwt.ErrTokenExpired) {
+        return "", domain.ErrExpiredToken
+    }
+    return "", err
+}
 
 	if claims, ok := token.Claims.(*jwt.RegisteredClaims); ok && token.Valid {
 		return claims.Subject, nil
