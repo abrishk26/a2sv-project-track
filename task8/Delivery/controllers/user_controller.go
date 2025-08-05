@@ -32,7 +32,7 @@ func (uc *UserController) LoginUser(c *gin.Context) {
 		return
 	}
 
-	token, err := uc.usecase.Login(c.Request.Context(), requestBody.Username, requestBody.Username)
+	token, err := uc.usecase.Login(c.Request.Context(), requestBody.Username, requestBody.Password)
 	if err != nil {
 		switch err {
 		case domain.ErrInvalidCredential:
@@ -117,7 +117,7 @@ func (uc *UserController) GetUsers(c *gin.Context) {
 		switch err {
 		case domain.ErrUnauthorized:
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "unautorized",
+				"error": "unauthorized",
 			})
 			return
 		default:
@@ -130,7 +130,7 @@ func (uc *UserController) GetUsers(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "users retrieved successfully",
-		"tasks":   users,
+		"users":   users,
 	})
 }
 
@@ -162,7 +162,7 @@ func (uc *UserController) GetUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "user retrieved successfully",
-		"task":    user,
+		"user":    user,
 	})
 }
 
@@ -215,7 +215,7 @@ func (uc *UserController) UpdateUser(c *gin.Context) {
 
 	c.JSON(http.StatusAccepted, gin.H{
 		"message": "user updated successfully",
-		"task":    updatedUser,
+		"user":    updatedUser,
 	})
 }
 
