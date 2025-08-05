@@ -3,7 +3,7 @@ package infrastructures
 import (
 	"errors"
 
-	domain "github.com/abrishk26/a2sv-project-track/task8/Domain"
+	"github.com/abrishk26/a2sv-project-track/task8/Domain"
 	"golang.org/x/crypto/bcrypt"
 )
 
