@@ -4,6 +4,7 @@ import "context"
 
 type Task struct {
 	ID          string `json:"id" bson:"_id"`
+	UserID      string `json:"user_id" bson:"user_id"`
 	Title       string `json:"title" bson:"title"`
 	Description string `json:"description" bson:"description"`
 	DueDate     string `json:"due_date" bson:"due_date"`
@@ -19,10 +20,11 @@ type User struct {
 
 type IUserRepository interface {
 	Add(ctx context.Context, u User) error
-	Get(ctx context.Context, id string) (*User, error)
+	GetByID(ctx context.Context, id string) (*User, error)
+	GetByUsername(ctx context.Context, username string) (*User, error)
 	Delete(ctx context.Context, id string) error
 	Update(ctx context.Context, id string, u User) error
-	GetAll(ctx context.Context) (*[]User, error)
+	GetAll(ctx context.Context) ([]User, error)
 }
 
 type ITaskRepository interface {
@@ -30,7 +32,7 @@ type ITaskRepository interface {
 	Get(ctx context.Context, id string) (*Task, error)
 	Delete(ctx context.Context, id string) error
 	Update(ctx context.Context, id string, t Task) error
-	GetAll(ctx context.Context) (*[]Task, error)
+	GetAll(ctx context.Context) ([]Task, error)
 }
 
 type IPasswordService interface {

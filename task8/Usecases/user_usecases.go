@@ -64,8 +64,8 @@ func getUser(ctx context.Context, userID string, ur domain.IUserRepository) (*do
 	return user, nil
 }
 
-func (us *UserUsecases) Login(ctx context.Context, email, password string) (string, error) {
-	user, err := us.repo.GetByEmail(ctx, email)
+func (us *UserUsecases) Login(ctx context.Context, username, password string) (string, error) {
+	user, err := us.repo.GetByUsername(ctx, username)
 	if err != nil {
 		switch err {
 		case domain.ErrUserNotFound:
@@ -94,6 +94,12 @@ func (us *UserUsecases) Login(ctx context.Context, email, password string) (stri
 }
 
 func (us *UserUsecases) Register(ctx context.Context, u domain.User) error {
+	hash, err := us.passwordService.Hash(u.PasswordHash)
+	if err != nil {
+		return err
+	}
+
+	u.PasswordHash = hash
 	return us.repo.Add(ctx, u)
 }
 

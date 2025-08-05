@@ -92,7 +92,7 @@ func (tm *TaskRepository) Update(ctx context.Context, id string, t domain.Task) 
 	return nil
 }
 
-func (tm *TaskRepository) GetAll(ctx context.Context) (*[]domain.Task, error) {
+func (tm *TaskRepository) GetAll(ctx context.Context) ([]domain.Task, error) {
 	var tasks []domain.Task
 
 	cursor, err := tm.coll.Find(ctx, bson.D{})
@@ -110,5 +110,5 @@ func (tm *TaskRepository) GetAll(ctx context.Context) (*[]domain.Task, error) {
 		tasks = append(tasks, task)
 	}
 
-	return &tasks, nil
+	return tasks, nil
 }

@@ -25,7 +25,7 @@ func (ur *UserRepository) Add(ctx context.Context, u domain.User) error {
 		if errors.As(err, &writeExe) {
 			for _, we := range writeExe.WriteErrors {
 				if we.Code == 11000 {
-					return domain.ErrDuplicateEmail
+					return domain.ErrDuplicateUsername
 				}
 			}
 		}
@@ -35,7 +35,22 @@ func (ur *UserRepository) Add(ctx context.Context, u domain.User) error {
 	return nil
 }
 
-func (ur *UserRepository) Get(ctx context.Context, id string) (*domain.User, error) {
+func (ur *UserRepository) GetByUsername(ctx context.Context, username string) (*domain.User, error) {
+	var res domain.User
+	singleResult := ur.coll.FindOne(ctx, bson.D{bson.E{Key: "username", Value: username}})
+	err := singleResult.Decode(&res)
+
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, domain.ErrUserNotFound
+		}
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+func (ur *UserRepository) GetByID(ctx context.Context, id string) (*domain.User, error) {
 	var res domain.User
 	singleResult := ur.coll.FindOne(ctx, bson.D{bson.E{Key: "_id", Value: id}})
 	err := singleResult.Decode(&res)
@@ -80,7 +95,7 @@ func (ur *UserRepository) Update(ctx context.Context, id string, u domain.User) 
 	return nil
 }
 
-func (ur *UserRepository) GetAll(ctx context.Context) (*[]domain.User, error) {
+func (ur *UserRepository) GetAll(ctx context.Context) ([]domain.User, error) {
 	var tasks []domain.User
 
 	cursor, err := ur.coll.Find(ctx, bson.D{})
@@ -98,5 +113,5 @@ func (ur *UserRepository) GetAll(ctx context.Context) (*[]domain.User, error) {
 		tasks = append(tasks, task)
 	}
 
-	return &tasks, nil
+	return tasks, nil
 }
